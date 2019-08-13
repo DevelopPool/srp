@@ -41,6 +41,12 @@ exports.tables = {
             endHour:'endHour',
         }
     },
+    workingType:{
+        tableName:'workingType',
+        columns:{
+            showName:'showName',
+        }
+    },
     workAssignment: {
         tableName: 'workAssignment',
         columns: {

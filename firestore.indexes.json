@@ -1,4 +1,209 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "authorized",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "authTime",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "authorized",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "authTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "authorized",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issueTime",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "authorized",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issueTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "authorized",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startLeaveTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "is_approved",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "authTime",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "is_approved",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issuer",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startLeaveTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "is_approved",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issueTime",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "is_approved",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issueTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "is_approved",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startLeaveTime",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "issuer",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issueTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaveNote",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "issuer",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startLeaveTime",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "loginRecord",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "uid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "loginTime",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "workAssignment",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "worker",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "worktime",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "modifyTime",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }
