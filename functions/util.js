@@ -108,7 +108,7 @@ exports.tables = {
             team: 'team',
             workingType: 'workingType',
             verified: 'verified',
-            permitions: 'permitions',
+            permission: 'permission',
             images: 'images',
         }
     },
@@ -137,6 +137,10 @@ exports.tables = {
             logoutIssuer: 'logoutIssuer',
         }
     },
+    permission:{
+        tableName:'permission',
+        columns:{}
+    }
 }
 
 exports.permitions = {

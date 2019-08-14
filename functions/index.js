@@ -131,13 +131,13 @@ exports.init = functions.https.onRequest((request, response) => {
     docRef=firestore.doc('team/餐廳組');
     batch.set(docRef,{});
 
-    docRef=firestore.doc('permision/一般');
+    docRef=firestore.doc('permission/一般');
     batch.set(docRef,{});
-    docRef=firestore.doc('permision/人事');
+    docRef=firestore.doc('permission/人事');
     batch.set(docRef,{});
-    docRef=firestore.doc('permision/後台');
+    docRef=firestore.doc('permission/後台');
     batch.set(docRef,{});
-    docRef=firestore.doc('permision/長老');
+    docRef=firestore.doc('permission/長老');
     batch.set(docRef,{});
 
     docRef=firestore.doc('leaveType/事假');

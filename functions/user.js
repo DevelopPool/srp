@@ -8,6 +8,8 @@ const cors = require('cors')({
 const firestore = admin.firestore();
 const auth = admin.auth();
 
+//註冊
+//前台用
 exports.register = functions.https.onRequest((request, response) => {
     cors(request, response, () => {
         let resultObj = {
@@ -138,7 +140,7 @@ exports.register = functions.https.onRequest((request, response) => {
     })
 });
 
-
+//前台用
 //用戶自firebase sms 登入後 需要再觸發此api 讓後端註冊用戶狀態為今日已登入 
 //若狀態為今日已登入 api當日皆可使用 否則都不可用(回應 fail)
 exports.checkLogin = functions.https.onRequest((request, response) => {
@@ -191,160 +193,8 @@ exports.checkLogin = functions.https.onRequest((request, response) => {
 
 });
 
-//目前只支援 後台登出
-exports.logout = functions.https.onRequest((request, response) => {
-    let resultObj = util.getResponseObject();
-    let defaultValue = "";
-
-    let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
-    let logoutPhoneNumber = util.checkEmpty(request.body.logoutPhoneNumber) ? request.body.logoutPhoneNumber : defaultValue;
-    let permisionCheck = _permissionCheck(uid, util.permitions.super);
-
-    console.log(logoutPhoneNumber);
-    let getLogoutUser = firestore.collection(util.tables.users.tableName)
-        .where(util.tables.users.columns.phoneNumber, '==', logoutPhoneNumber)
-        .limit(1)
-        .get().then(user => {
-            let id = "";
-            user.forEach(userDoc => {
-                id = userDoc.id;
-            })
-            return id;
-        })
-
-    Promise.all([getLogoutUser, permisionCheck]).then(values => {
-        let logoutUid = values[0];
-        //找到今日午夜之後的所有loginRecord 並且填入註銷資訊
-        return firestore.collection(util.tables.loginRecord.tableName)
-        .where(util.tables.loginRecord.columns.uid,'==',logoutUid)
-        .where(util.tables.loginRecord.columns.loginTime , '>=',new Date( util.getTaipeiMidNightUTCSeconds()))
-        .get().then(docs=>{
-            console.log(util.getTaipeiMidNightUTCSeconds());
-            let _loginRecords = [];
-            docs.forEach(doc =>{
-                _loginRecords.push(doc.id);
-                console.log(doc.data());
-            })
-            return _loginRecords;
-        })
-    }).then((loginRecords) => {
-        let batch =  firestore.batch();
-        loginRecords.forEach((value)=>{
-            console.log(value);
-            let logoutInfo = {};
-            logoutInfo[util.tables.loginRecord.columns.logoutTime] = new Date();
-            logoutInfo[util.tables.loginRecord.columns.logoutIssuer] = uid;
-            logoutInfo[util.tables.loginRecord.columns.logoutMethod] = 'super kick off'
-            batch.update(firestore.collection(util.tables.loginRecord.tableName).doc(value),logoutInfo);
-        })
-        return batch.commit();
-    }).then(()=>{
-        resultObj.excutionResult = "success"
-        response.json(resultObj);
-    })
-    .catch(fail => {
-        console.log(fail);
-        response.json(resultObj);
-    })
-});
-
-exports.updateUser = functions.https.onRequest((request, response) => {
-    cors(request, response, () => {
-        let resultObj = {
-            excutionResult: 'fail',
-        };
-
-        //normalize
-        let defaultValue = " ";
-        let _uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue; //動作帳號
-        let _modifingUid = util.checkEmpty(request.body.modifingUid) ? request.body.modifingUid : defaultValue; //欲修改帳號
-        let _name = util.checkEmpty(request.body.name) ? request.body.name : defaultValue;
-        let _gender = util.checkEmpty(request.body.gender) ? request.body.gender : defaultValue;
-        let _jobTitle = util.checkEmpty(request.body.jobTitle) ? request.body.jobTitle : defaultValue;
-        let _team = util.checkEmpty(request.body.team) ? request.body.team : defaultValue;
-        let _workingType = util.checkEmpty(request.body.workingType) ? request.body.workingType : defaultValue;
-        let _permission = util.checkEmpty(request.body.permission) ? request.body.permission : defaultValue;
-        console.log(_permission);
-        let _verified = true;
-
-
-        //確認gender存在
-        let genderCheck = firestore.collection(util.tables.gender.tableName).doc(_gender).get().then(snapshot => {
-            if (snapshot.exists) {
-                return Promise.resolve('gender exists');
-            }
-            else {
-                return Promise.reject('gender does not exists');
-            }
-        });
-
-        //確認team存在
-        let teamCheck = firestore.collection(util.tables.team.tableName).doc(_team).get().then(snapshot => {
-            if (snapshot.exists) {
-                return Promise.resolve('team exists');
-            }
-            else {
-                return Promise.reject('team does not exists');
-            }
-        });
-
-        //確認workingType存在
-        let workingTypeCheck = firestore.collection(util.tables.workingType.tableName).doc(_workingType).get().then(snapshot => {
-            if (snapshot.exists) {
-                return Promise.resolve('workingType exists');
-            }
-            else {
-                return Promise.reject('workingType does not exists');
-            }
-        });
-        // 確認permision 存在
-        let permisionCheck = _permissionCheck(_uid, util.permitions.super);
-
-        //改自己
-        if (_uid === _modifingUid) {
-            Promise.all([genderCheck, teamCheck, workingTypeCheck, permisionCheck]).then(value => {
-                return firestore.collection(util.tables.users.tableName).doc(_uid).update({
-                    name: _name,
-                    gender: _gender,
-                    jobTitle: _jobTitle,
-                    team: _team,
-                    workingType: _workingType,
-                    verified: _verified,
-                });
-            }).then(() => {
-                resultObj.excutionResult = 'success';
-                response.json(resultObj);
-            }).catch(reason => {
-                console.log(reason)
-                response.json(resultObj);
-            });
-        }
-        //改別人
-        else {
-            let userCheck = _uidCheck(_uid);
-            //todo permisionCheck
-            Promise.all([genderCheck, teamCheck, workingTypeCheck, userCheck, permisionCheck]).then(value => {
-                return firestore.collection(util.tables.users.tableName).doc(_modifingUid).update({
-                    name: _name,
-                    gender: _gender,
-                    jobTitle: _jobTitle,
-                    team: _team,
-                    workingType: _workingType,
-                    permission: _permission,
-                    verified: _verified,
-                });
-            }).then(() => {
-                resultObj.excutionResult = 'success';
-                response.json(resultObj);
-            }).catch(reason => {
-                console.log(reason)
-                response.json(resultObj);
-            });
-        }
-
-    })
-});
-
+//前台用
+//取得自己的資料 所以可以使用 uid
 exports.getUserDetail = functions.https.onRequest((request, response) => {
     cors(request, response, () => {
         let resultObj = {
@@ -362,7 +212,7 @@ exports.getUserDetail = functions.https.onRequest((request, response) => {
 
         let getLeaveNoteOfToday = firestore.collection(util.tables.leaveNote.tableName)
             .where(util.tables.leaveNote.columns.issuer, '==', _uid)
-            .where(util.tables.leaveNote.columns.startLeaveTime, '>', new Date( util.getTaipeiMidNightUTCSeconds()))
+            .where(util.tables.leaveNote.columns.startLeaveTime, '>', new Date(util.getTaipeiMidNightUTCSeconds()))
             .get().then(snapshot => {
                 let returnData = [];
                 snapshot.forEach(a => {
@@ -468,11 +318,187 @@ exports.getUserDetail = functions.https.onRequest((request, response) => {
             response.json(resultObj);
         });
 
-
-
     })
 });
 
+//目前只支援 後台登出
+//後台用
+exports.logout = functions.https.onRequest((request, response) => {
+    let resultObj = util.getResponseObject();
+    let defaultValue = "";
+
+    let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
+    let logoutPhoneNumber = util.checkEmpty(request.body.logoutPhoneNumber) ? request.body.logoutPhoneNumber : defaultValue;
+    let permisionCheck = _permissionCheck(uid, util.permitions.super);
+
+    console.log(logoutPhoneNumber);
+    let getLogoutUser = firestore.collection(util.tables.users.tableName)
+        .where(util.tables.users.columns.phoneNumber, '==', logoutPhoneNumber)
+        .limit(1)
+        .get().then(user => {
+            let id = "";
+            user.forEach(userDoc => {
+                id = userDoc.id;
+            })
+            return id;
+        })
+
+    Promise.all([getLogoutUser, permisionCheck]).then(values => {
+        let logoutUid = values[0];
+        //找到今日午夜之後的所有loginRecord 並且填入註銷資訊
+        return firestore.collection(util.tables.loginRecord.tableName)
+            .where(util.tables.loginRecord.columns.uid, '==', logoutUid)
+            .where(util.tables.loginRecord.columns.loginTime, '>=', new Date(util.getTaipeiMidNightUTCSeconds()))
+            .get().then(docs => {
+                console.log(util.getTaipeiMidNightUTCSeconds());
+                let _loginRecords = [];
+                docs.forEach(doc => {
+                    _loginRecords.push(doc.id);
+                    console.log(doc.data());
+                })
+                return _loginRecords;
+            })
+    }).then((loginRecords) => {
+        let batch = firestore.batch();
+        loginRecords.forEach((value) => {
+            console.log(value);
+            let logoutInfo = {};
+            logoutInfo[util.tables.loginRecord.columns.logoutTime] = new Date();
+            logoutInfo[util.tables.loginRecord.columns.logoutIssuer] = uid;
+            logoutInfo[util.tables.loginRecord.columns.logoutMethod] = 'super kick off'
+            batch.update(firestore.collection(util.tables.loginRecord.tableName).doc(value), logoutInfo);
+        })
+        return batch.commit();
+    }).then(() => {
+        resultObj.excutionResult = "success"
+        response.json(resultObj);
+    })
+        .catch(fail => {
+            console.log(fail);
+            response.json(resultObj);
+        })
+});
+
+//更新使用者資料 
+//更新自己時不得修改permission
+//後台用 更新其他人
+//前台用 更新自己
+exports.updateUser = functions.https.onRequest((request, response) => {
+    cors(request, response, () => {
+        let resultObj = {
+            excutionResult: 'fail',
+        };
+
+        //normalize
+        let defaultValue = " ";
+        let _uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue; //動作帳號
+        let _modifiedAccountPhoneNumber = util.checkEmpty(request.body.modifiedAccountPhoneNumber) ? request.body.modifiedAccountPhoneNumber : defaultValue;
+        let _name = util.checkEmpty(request.body.name) ? request.body.name : defaultValue;
+        let _gender = util.checkEmpty(request.body.gender) ? request.body.gender : defaultValue;
+        let _jobTitle = util.checkEmpty(request.body.jobTitle) ? request.body.jobTitle : defaultValue;
+        let _team = util.checkEmpty(request.body.team) ? request.body.team : defaultValue;
+        let _workingType = util.checkEmpty(request.body.workingType) ? request.body.workingType : defaultValue;
+        let _permission = util.checkEmpty(request.body.permission) ? request.body.permission : defaultValue;
+        console.log(_permission);
+        let _verified = true;
+
+        let loginCheck = _loginCheck(uid);
+
+        // //確認gender存在
+        let genderCheck = firestore.collection(util.tables.gender.tableName).doc(_gender).get().then(snapshot => {
+            if (snapshot.exists) {
+                return Promise.resolve('gender exists');
+            }
+            else {
+                return Promise.reject('gender does not exists');
+            }
+        });
+
+        // //確認team存在
+        let teamCheck = firestore.collection(util.tables.team.tableName).doc(_team).get().then(snapshot => {
+            if (snapshot.exists) {
+                return Promise.resolve('team exists');
+            }
+            else {
+                return Promise.reject('team does not exists');
+            }
+        });
+
+        // //確認workingType存在
+        let workingTypeCheck = firestore.collection(util.tables.workingType.tableName).doc(_workingType).get().then(snapshot => {
+            if (snapshot.exists) {
+                return Promise.resolve('workingType exists');
+            }
+            else {
+                return Promise.reject('workingType does not exists');
+            }
+        });
+
+        let permisionExistCheck = firestore.collection(util.tables.permission.tableName).doc(_permission).get().then(data => {
+            console.log(data.exists);
+            return data.exists;
+        })
+
+        // // 確認permision 可以update
+        let permisionCheck = _permissionCheck(_uid, util.permitions.super);
+
+        //取得欲修改帳號uid
+        let _modifiedAccount = _getUserByPhoneNumber(_modifiedAccountPhoneNumber);
+
+        _modifiedAccount.then(account => {
+            console.log(account.uid);
+            console.log(_uid);
+            //改自己
+            if (account.uid == _uid) {
+                console.log('改自己');
+                Promise.all([genderCheck, teamCheck, workingTypeCheck,loginCheck]).then(value => {
+                    return firestore.collection(util.tables.users.tableName).doc(_uid).update({
+                        name: _name,
+                        gender: _gender,
+                        jobTitle: _jobTitle,
+                        team: _team,
+                        workingType: _workingType,
+                        verified: _verified,
+                    });
+                }).then(() => {
+                    resultObj.excutionResult = 'success';
+                    response.json(resultObj);
+                }).catch(reason => {
+                    console.log(reason)
+                    response.json(resultObj);
+                });
+            }
+            //改別人
+            else {
+                console.log('改別人');
+                let userCheck = _uidCheck(_uid);
+                Promise.all([genderCheck, teamCheck, workingTypeCheck, userCheck, permisionCheck, permisionExistCheck,loginCheck]).then(value => {
+                    if (!value[5]) {
+                        return Promise.reject(_permission + ' does not exist');
+                    }
+                    return firestore.collection(util.tables.users.tableName).doc(account.uid).update({
+                        name: _name,
+                        gender: _gender,
+                        jobTitle: _jobTitle,
+                        team: _team,
+                        workingType: _workingType,
+                        permission: _permission,
+                        verified: _verified,
+                    });
+                }).then(() => {
+                    resultObj.excutionResult = 'success';
+                    response.json(resultObj);
+                }).catch(reason => {
+                    console.log(reason)
+                    response.json(resultObj);
+                });
+            }
+        })
+    })
+});
+
+
+//後台用
 //get userlist
 exports.getUserList = functions.https.onRequest((request, response) => {
     cors(request, response, () => {
@@ -584,36 +610,34 @@ exports.getUserList = functions.https.onRequest((request, response) => {
     });
 });
 
+
 //登入確認
 exports.loginCheck = _loginCheck;
 
+
 function _loginCheck(userID) {
 
-    // let midNight = Date.now();
-    // let date = new Date();
-    // midNight -= date.getUTCMilliseconds();
-    // midNight -= date.getUTCSeconds() * 1000;
-    // midNight -= date.getUTCMinutes() * 60 * 1000;
-    // let hour = date .getUTCHours() + 8;
-    // if(hour >= 24){
-    //     hour-=24;
-    // }
-    // midNight -= hour * 60 * 60 * 1000;
-    //console.log(midNight);
     let loginCheck = firestore.collection(util.tables.loginRecord.tableName)
         .where(util.tables.loginRecord.columns.uid, '==', userID)
         .where(util.tables.loginRecord.columns.loginTime, '>', new Date(util.getTaipeiMidNightUTCSeconds()))
         .orderBy(util.tables.loginRecord.columns.loginTime, 'desc')
         .get()
         .then(snapshot => {
-            if (snapshot.empty) {
+            let count = 0;
+            snapshot.forEach(records=>{
+                records = records.data();
+                if(records[util.tables.loginRecord.columns.logoutTime] === null){
+                    count = count +1 ;
+                }
+            })
+            if (count === 0) {
                 return Promise.reject(`${userID} login check fail`);
             }
             else {
                 return Promise.resolve(`${userID} login check pass`);
             }
         });
-    return loginCheck
+    return loginCheck;
 }
 
 exports.uidCheck = _uidCheck;
@@ -639,5 +663,17 @@ function _permissionCheck(uid, expected) {
         else {
             return Promise.resolve(doc);
         }
+    })
+}
+exports.getUserByPhoneNumber = _getUserByPhoneNumber;
+function _getUserByPhoneNumber(phoneNumber) {
+
+    return firestore.collection(util.tables.users.tableName).where(util.tables.users.columns.phoneNumber, '==', phoneNumber).get().then(docs => {
+        let user = {};
+        docs.forEach(doc => {
+            user = doc.data();
+            user.uid = doc.id;
+        })
+        return user;
     })
 }
