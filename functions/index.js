@@ -13,7 +13,7 @@ const firestore = admin.firestore();
 
 exports.register = user.register;
 exports.checkLogin = user.checkLogin;
-// exports.logout = user.logout;
+exports.logout = user.logout;
 exports.updateUser = user.updateUser;
 exports.getUserDetail = user.getUserDetail;
 exports.getUserList = user.getUserList;

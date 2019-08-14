@@ -133,7 +133,8 @@ exports.tables = {
             uid: 'uid',
             loginTime: 'loginTime',
             logoutMethod: 'logoutMethod',
-            logoutTime: 'logoutTime'
+            logoutTime: 'logoutTime',
+            logoutIssuer: 'logoutIssuer',
         }
     },
 }

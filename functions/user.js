@@ -170,6 +170,9 @@ exports.checkLogin = functions.https.onRequest((request, response) => {
                 return firestore.collection(util.tables.loginRecord.tableName).add({
                     uid: userRecord.uid,
                     loginTime: new Date(),
+                    logoutMethod: null,
+                    logoutTime: null,
+                    logoutIssuer: null
                 })
 
             }
@@ -189,19 +192,61 @@ exports.checkLogin = functions.https.onRequest((request, response) => {
 });
 
 
-// exports.logout = functions.https.onRequest((request, response) => {
-//     let resultObj = util.getResponseObject();
+exports.logout = functions.https.onRequest((request, response) => {
+    let resultObj = util.getResponseObject();
+    let defaultValue = "";
 
-//     let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
-//     let logoutUid = util.checkEmpty(request.body.logoutUid) ? request.body.logoutUid : defaultValue;
+    let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
+    let logoutPhoneNumber = util.checkEmpty(request.body.logoutPhoneNumber) ? request.body.logoutPhoneNumber : defaultValue;
+    let permisionCheck = _permissionCheck(uid, util.permitions.super);
 
-//     let permisionCheck = _permissionCheck(uid, util.permitions.super);
+    console.log(logoutPhoneNumber);
+    let getLogoutUser = firestore.collection(util.tables.users.tableName)
+        .where(util.tables.users.columns.phoneNumber, '==', logoutPhoneNumber)
+        .limit(1)
+        .get().then(user => {
+            let id = "";
+            user.forEach(userDoc => {
+                id = userDoc.id;
+            })
+            return id;
+        })
 
-//     permisionCheck.then(data => {
-//         console.log(permisionCheck)
-//         response.json(resultObj);
-//     })
-// });
+    Promise.all([getLogoutUser, permisionCheck]).then(values => {
+        let logoutUid = values[0];
+        //找到今日午夜之後的所有loginRecord 並且填入註銷資訊
+        return firestore.collection(util.tables.loginRecord.tableName)
+        .where(util.tables.loginRecord.columns.uid,'==',logoutUid)
+        .where(util.tables.loginRecord.columns.loginTime , '>=',new Date( util.getTaipeiMidNightUTCSeconds()))
+        .get().then(docs=>{
+            console.log(util.getTaipeiMidNightUTCSeconds());
+            let _loginRecords = [];
+            docs.forEach(doc =>{
+                _loginRecords.push(doc.id);
+                console.log(doc.data());
+            })
+            return _loginRecords;
+        })
+    }).then((loginRecords) => {
+        let batch =  firestore.batch();
+        loginRecords.forEach((value)=>{
+            console.log(value);
+            let logoutInfo = {};
+            logoutInfo[util.tables.loginRecord.columns.logoutTime] = new Date();
+            logoutInfo[util.tables.loginRecord.columns.logoutIssuer] = uid;
+            logoutInfo[util.tables.loginRecord.columns.logoutMethod] = 'super kick off'
+            batch.update(firestore.collection(util.tables.loginRecord.tableName).doc(value),logoutInfo);
+        })
+        return batch.commit();
+    }).then(()=>{
+        resultObj.excutionResult = "success"
+        response.json(resultObj);
+    })
+    .catch(fail => {
+        console.log(fail);
+        response.json(resultObj);
+    })
+});
 
 // exports.logout = functions.https.onRequest((request, response) => {
 //     let resultObj = {
@@ -345,7 +390,7 @@ exports.getUserDetail = functions.https.onRequest((request, response) => {
 
         let getLeaveNoteOfToday = firestore.collection(util.tables.leaveNote.tableName)
             .where(util.tables.leaveNote.columns.issuer, '==', _uid)
-            .where(util.tables.leaveNote.columns.startLeaveTime, '>', util.getTaipeiMidNightUTCSeconds())
+            .where(util.tables.leaveNote.columns.startLeaveTime, '>', new Date( util.getTaipeiMidNightUTCSeconds()))
             .get().then(snapshot => {
                 let returnData = [];
                 snapshot.forEach(a => {
@@ -589,7 +634,6 @@ function _loginCheck(userID) {
         .orderBy(util.tables.loginRecord.columns.loginTime, 'desc')
         .get()
         .then(snapshot => {
-
             if (snapshot.empty) {
                 return Promise.reject(`${userID} login check fail`);
             }
