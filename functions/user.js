@@ -191,7 +191,7 @@ exports.checkLogin = functions.https.onRequest((request, response) => {
 
 });
 
-
+//目前只支援 後台登出
 exports.logout = functions.https.onRequest((request, response) => {
     let resultObj = util.getResponseObject();
     let defaultValue = "";
@@ -248,28 +248,6 @@ exports.logout = functions.https.onRequest((request, response) => {
     })
 });
 
-// exports.logout = functions.https.onRequest((request, response) => {
-//     let resultObj = {
-//         excutionResult: 'fail',
-//     };
-
-//     let defaultValue = "";
-//     let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
-
-//     auth.getUser(uid).then(userRecord => {
-//         //確認 loginRecord 存在
-//         return firestore.collection(util.tables.loginRecord).where(util.tables.loginRecord.colunms.uid,'==',userRecord.uid).orderBy(util.tables.loginRecord.colunms.loginTime,"desc").limit(1).get();
-//     }).then((snapshot=>{
-//         console.log(snapshot);
-//     })).then((loginTime) => {
-//         resultObj.excutionResult = 'success';
-//         response.json(resultObj);
-//     }).catch(reason => {
-//         console.log(reason);
-//         response.json(resultObj);
-//     });
-// });
-
 exports.updateUser = functions.https.onRequest((request, response) => {
     cors(request, response, () => {
         let resultObj = {
@@ -300,8 +278,6 @@ exports.updateUser = functions.https.onRequest((request, response) => {
             }
         });
 
-        //確認jobTitle存在？
-
         //確認team存在
         let teamCheck = firestore.collection(util.tables.team.tableName).doc(_team).get().then(snapshot => {
             if (snapshot.exists) {
@@ -322,7 +298,7 @@ exports.updateUser = functions.https.onRequest((request, response) => {
             }
         });
         // 確認permision 存在
-        let permisionCheck = _permissionCheck(_uid, '後台');
+        let permisionCheck = _permissionCheck(_uid, util.permitions.super);
 
         //改自己
         if (_uid === _modifingUid) {
@@ -333,7 +309,6 @@ exports.updateUser = functions.https.onRequest((request, response) => {
                     jobTitle: _jobTitle,
                     team: _team,
                     workingType: _workingType,
-                    permission: _permission,
                     verified: _verified,
                 });
             }).then(() => {
@@ -366,9 +341,6 @@ exports.updateUser = functions.https.onRequest((request, response) => {
                 response.json(resultObj);
             });
         }
-
-
-
 
     })
 });
