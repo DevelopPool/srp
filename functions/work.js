@@ -157,7 +157,7 @@ exports.getWork = functions.https.onRequest((request, response) => {
         let workAssignmets = firestore.collection(util.tables.workAssignment.tableName)
             .where(WAColumn.workTime, '==', values[2])
             .where(WAColumn.worker, 'array-contains', values[0].data()[util.tables.users.columns.phoneNumber])
-            .where(WAColumn.modifyTime, '>=', new Date(util.getMidNightUTCSeconds()))
+            .where(WAColumn.modifyTime, '>=', new Date(util.getTaipeiMidNightUTCSeconds()))
             .orderBy(WAColumn.modifyTime)
             .get();
         return Promise.all([users, workAssignmets])

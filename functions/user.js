@@ -23,7 +23,6 @@ exports.register = functions.https.onRequest((request, response) => {
         let _team = util.checkEmpty(request.body.team) ? request.body.team : defaultValue;
         let _workingType = util.checkEmpty(request.body.workingType) ? request.body.workingType : defaultValue;
         let _verified = false;
-        let _permission = defaultValue;
         let _image = defaultValue;
 
 
@@ -63,7 +62,7 @@ exports.register = functions.https.onRequest((request, response) => {
         });
 
         //確認workingType存在
-        let workingTypeCheck = firestore.collection(util.tables.hiringType.tableName).doc(_workingType).get().then(snapshot => {
+        let workingTypeCheck = firestore.collection(util.tables.workingType.tableName).doc(_workingType).get().then(snapshot => {
             if (snapshot.exists) {
                 return Promise.resolve('workingType exists');
             }
@@ -81,13 +80,18 @@ exports.register = functions.https.onRequest((request, response) => {
 
 
         Promise.all([genderCheck, teamCheck, workingTypeCheck, accountExists, firestoreAccount]).then(value => {
+
+            console.log(value[3]);
+
             //firestore 帳號已經存在
             if (value[4] === true) {
                 return Promise.reject({ log: "帳號已經存在" });
             }
             //如果auth帳號已經存在
             else if (value[3] !== false) {
-                return firestore.collection(util.tables.users.tableName).doc(value[3].uid).set({
+                let batch = firestore.batch();
+                let dirRef = firestore.collection('users').doc(value[3].uid);
+                batch.set(dirRef, {
                     name: _name,
                     phoneNumber: _phoneNumber,
                     gender: _gender,
@@ -95,16 +99,19 @@ exports.register = functions.https.onRequest((request, response) => {
                     team: _team,
                     workingType: _workingType,
                     verified: _verified,
-                    permission: _permission,
+                    permission: util.permitions.normal,
                     image: _image,
                 });
+                return batch.commit();
             }
             //都不存在
             else {
                 return auth.createUser({
                     phoneNumber: _phoneNumber,
                 }).then(userRecord => {
-                    return firestore.collection(util.tables.users.tableName).doc(value[3].uid).set({
+                    let batch = firestore.batch();
+                    let dirRef = firestore.collection('users').doc(userRecord.uid);
+                    batch.set(dirRef, {
                         name: _name,
                         phoneNumber: _phoneNumber,
                         gender: _gender,
@@ -112,9 +119,10 @@ exports.register = functions.https.onRequest((request, response) => {
                         team: _team,
                         workingType: _workingType,
                         verified: _verified,
-                        permission: _permission,
+                        permission: util.permitions.normal,
                         image: _image,
-                    });
+                    })
+                    return batch.commit();
                 });
             }
 
@@ -131,7 +139,8 @@ exports.register = functions.https.onRequest((request, response) => {
 });
 
 
-
+//用戶自firebase sms 登入後 需要再觸發此api 讓後端註冊用戶狀態為今日已登入 
+//若狀態為今日已登入 api當日皆可使用 否則都不可用(回應 fail)
 exports.checkLogin = functions.https.onRequest((request, response) => {
     cors(request, response, () => {
 
@@ -178,6 +187,22 @@ exports.checkLogin = functions.https.onRequest((request, response) => {
     });
 
 });
+
+
+// exports.logout = functions.https.onRequest((request, response) => {
+//     let resultObj = util.getResponseObject();
+
+//     let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
+//     let logoutUid = util.checkEmpty(request.body.logoutUid) ? request.body.logoutUid : defaultValue;
+
+//     let permisionCheck = _permissionCheck(uid, util.permitions.super);
+
+//     permisionCheck.then(data => {
+//         console.log(permisionCheck)
+//         response.json(resultObj);
+//     })
+// });
+
 // exports.logout = functions.https.onRequest((request, response) => {
 //     let resultObj = {
 //         excutionResult: 'fail',
@@ -243,7 +268,7 @@ exports.updateUser = functions.https.onRequest((request, response) => {
         });
 
         //確認workingType存在
-        let workingTypeCheck = firestore.collection(util.tables.hiringType.tableName).doc(_workingType).get().then(snapshot => {
+        let workingTypeCheck = firestore.collection(util.tables.workingType.tableName).doc(_workingType).get().then(snapshot => {
             if (snapshot.exists) {
                 return Promise.resolve('workingType exists');
             }
@@ -252,7 +277,7 @@ exports.updateUser = functions.https.onRequest((request, response) => {
             }
         });
         // 確認permision 存在
-        let permisionCheck = _permissionCheck(_uid , '後台');
+        let permisionCheck = _permissionCheck(_uid, '後台');
 
         //改自己
         if (_uid === _modifingUid) {
@@ -320,7 +345,7 @@ exports.getUserDetail = functions.https.onRequest((request, response) => {
 
         let getLeaveNoteOfToday = firestore.collection(util.tables.leaveNote.tableName)
             .where(util.tables.leaveNote.columns.issuer, '==', _uid)
-            .where(util.tables.leaveNote.columns.startLeaveTime, '>', util.getMidNightUTCSeconds())
+            .where(util.tables.leaveNote.columns.startLeaveTime, '>', util.getTaipeiMidNightUTCSeconds())
             .get().then(snapshot => {
                 let returnData = [];
                 snapshot.forEach(a => {
@@ -361,7 +386,7 @@ exports.getUserDetail = functions.https.onRequest((request, response) => {
 
             let WAColumn = util.tables.workAssignment.columns;
             let workAssignments2 = firestore.collection(util.tables.workAssignment.tableName)
-                .where(WAColumn.modifyTime, '>=', new Date(util.getMidNightUTCSeconds()))
+                .where(WAColumn.modifyTime, '>=', new Date(util.getTaipeiMidNightUTCSeconds()))
                 .where(WAColumn.workTime, '==', values[2])
                 .where(WAColumn.worker, 'array-contains', userData[util.tables.users.columns.phoneNumber])
                 .orderBy(WAColumn.modifyTime)
@@ -447,7 +472,7 @@ exports.getUserList = functions.https.onRequest((request, response) => {
         let permisionCheck = true;
 
         let getLeaveNotesOfToday = firestore.collection(util.tables.leaveNote.tableName)
-            .where(util.tables.leaveNote.columns.startLeaveTime, '>=', new Date(util.getMidNightUTCSeconds()))
+            .where(util.tables.leaveNote.columns.startLeaveTime, '>=', new Date(util.getTaipeiMidNightUTCSeconds()))
             .get()
             .then(snapshot => {
                 let returnData = [];
@@ -463,7 +488,7 @@ exports.getUserList = functions.https.onRequest((request, response) => {
 
 
         let workAssignments = firestore.collection(util.tables.workAssignment.tableName)
-            .where(util.tables.workAssignment.columns.modifyTime, '>=', new Date(util.getMidNightUTCSeconds()))
+            .where(util.tables.workAssignment.columns.modifyTime, '>=', new Date(util.getTaipeiMidNightUTCSeconds()))
             .orderBy(util.tables.workAssignment.columns.modifyTime)
             .get()
             .then(snapshot => {
@@ -516,19 +541,19 @@ exports.getUserList = functions.https.onRequest((request, response) => {
                 //console.log(values[3]);
                 console.log(values[4]);
                 let userData = {};
-                for(userid in values[2][0]){
+                for (userid in values[2][0]) {
                     userData[userid] = {};
                     userData[userid] = values[2][0][userid];
                     userData[userid]['leaveNotes'] = values[3][userid] == undefined ? [] : values[3][userid];
                     let _wa = values[4][userData[userid]['phoneNumber']] == undefined ? [] : values[4][userData[userid]['phoneNumber']];
-                    userData[userid]['workAssignments']=  _wa;
+                    userData[userid]['workAssignments'] = _wa;
                 }
                 return Promise.resolve(userData);
                 //console.log(userData);
             })
             .then((users) => {
                 let returnData = []
-                for(a in users){
+                for (a in users) {
 
                     returnData.push(users[a]);
                 }
@@ -560,7 +585,7 @@ function _loginCheck(userID) {
     //console.log(midNight);
     let loginCheck = firestore.collection(util.tables.loginRecord.tableName)
         .where(util.tables.loginRecord.columns.uid, '==', userID)
-        .where(util.tables.loginRecord.columns.loginTime, '>', new Date(util.getMidNightUTCSeconds()))
+        .where(util.tables.loginRecord.columns.loginTime, '>', new Date(util.getTaipeiMidNightUTCSeconds()))
         .orderBy(util.tables.loginRecord.columns.loginTime, 'desc')
         .get()
         .then(snapshot => {
@@ -578,7 +603,7 @@ function _loginCheck(userID) {
 exports.uidCheck = _uidCheck;
 
 function _uidCheck(uid) {
-   return firestore.collection(util.tables.users.tableName).doc(uid).get().then(doc => {
+    return firestore.collection(util.tables.users.tableName).doc(uid).get().then(doc => {
         if (!doc.exists) {
             return Promise.reject(`${uid} does not exists`)
         }
@@ -589,8 +614,8 @@ function _uidCheck(uid) {
 }
 
 exports.permissionCheck = _permissionCheck;
-function _permissionCheck (uid , expected){
-   return firestore.collection(util.tables.users.tableName).doc(uid).get().then(doc => {
+function _permissionCheck(uid, expected) {
+    return firestore.collection(util.tables.users.tableName).doc(uid).get().then(doc => {
         var user = doc.data();
         if (user.permission !== expected) {
             return Promise.reject(`${uid} does not have ${expected} permission`)

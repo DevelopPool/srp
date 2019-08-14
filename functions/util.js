@@ -7,7 +7,14 @@ exports.checkEmpty = function checkEmpty(uncheckedValue) {
     return false;
 }
 
-exports.getMidNightUTCSeconds = function(){
+exports.getResponseObject=function (){
+    return {
+        excutionResult: 'fail',
+    };
+}
+
+//取得台北時間當日上午00:00的UTCsecodes值
+exports.getTaipeiMidNightUTCSeconds = function(){
      
     let midNight = Date.now();
     let date = new Date();
@@ -114,7 +121,7 @@ exports.tables = {
     team: {
         tableName: 'team',
     },
-    hiringType: {
+    workingType: {
         tableName: 'workingType',
         columns: {
             showName: 'showName',
@@ -129,6 +136,13 @@ exports.tables = {
             logoutTime: 'logoutTime'
         }
     },
+}
+
+exports.permitions = {
+    normal:'一般',
+    HR:'人事',
+    leader:'長老',
+    super:'後台',
 }
 
 
