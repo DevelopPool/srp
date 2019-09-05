@@ -2,6 +2,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const util = require('./util');
 const user = require('./user');
+const team = require('./team');
 const cors = require('cors')({
     'origin': true,
 });
@@ -10,6 +11,7 @@ const cors = require('cors')({
 const firestore = admin.firestore();
 const auth = admin.auth();
 
+//長老用來追加工作
 exports.addWork  = functions.https.onRequest((request, response) => {
     let resultObj = {
         excutionResult: 'fail',
@@ -52,29 +54,22 @@ exports.addWork  = functions.https.onRequest((request, response) => {
         }
         return resolve('parameter check pass');
     });
-    //  todo
-    // let workerExistCheck = firestore.collection(util.tables.users.tableName).get().then(snapshot => {
-    //     userIDs = [];
-    //     snapshot.forEach(result => {
-    //         userIDs.push(result.id);
-    //     })
-    //     let flag = true;
-    //     _worker.forEach(element => {
-    //         //console.log(userIDs.includes(element));
-    //         if (!userIDs.includes(element)) {
-    //             flag = false;
-    //         }
 
-    //     })
-
-    //     if (flag) {
-    //         return Promise.resolve('worker check pass');
-    //     }
-    //     return Promise.reject('worker check fail');
-
-    // })
-
-    Promise.all([uidCheck, loginCheck, paracheck, teamCheck, "workerExistCheck", workTimeCheck]).then(valuse => {
+    let workerCheckArray = [];
+    _worker.forEach(value=>{
+        let _check = user.getUserByPhoneNumber(value).then(data=>{
+            if(data.uid === undefined){
+                return Promise.reject(`${value} does not exist`)
+            }
+            return Promise.resolve();
+        })
+        workerCheckArray.push(_check);
+    });
+    let workerExistCheck = Promise.all(workerCheckArray);
+    
+    let permissionCheck = user.permissionCheck(_uid,[util.permissions.leader,util.permissions.normal ]);
+    
+    Promise.all([uidCheck, loginCheck, paracheck, teamCheck, workerExistCheck, workTimeCheck,permissionCheck]).then(valuse => {
         let WAColumn = util.tables.workAssignment.columns;
         let newAssignment = {};
         newAssignment[WAColumn.team] = _team;
@@ -102,13 +97,13 @@ exports.getWork = functions.https.onRequest((request, response) => {
     };
 
     defaultValue = " ";
-    //todo 時區問題待修正
+    //server time 在 +0時區 要修正
     let nowHour = new Date().getUTCHours() + 8;
     if (nowHour >= 24) {
         nowHour -= 24;
     }
     //todo testOnly
-    nowHour = 8;
+    //nowHour = 8;
 
 
     let _uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
@@ -195,6 +190,7 @@ exports.getWork = functions.https.onRequest((request, response) => {
 
 });
 
+//todo 
 exports.deleteWork = functions.https.onRequest((request, response) => {
 
 });
@@ -206,21 +202,10 @@ exports.punch = functions.https.onRequest((request, response) => {
 
     let defaultValue = " ";
     let employerUID = util.checkEmpty(request.body.employer) ? request.body.employer : defaultValue;
-    let employeeUID = util.checkEmpty(request.body.employee) ? request.body.employee : defaultValue;
+    let employeePhoneNumber = util.checkEmpty(request.body.employeePhoneNumber) ? request.body.employeePhoneNumber : defaultValue;
 
-    //確認user存在
-    let employeeCheck = firestore.collection(util.tables.users.tableName).doc(employeeUID).get().then(doc => {
-        if (doc.exists === false) {
-            return Promise.reject(`${employeeUID} does not exists`);
-        }
-        else {
-            return Promise.resolve(doc);
-        }
 
-    }).then(doc => {
-        return doc;
-        //確認permition;
-    });
+    let getEmployeeUID = user.getUserByPhoneNumber(employeePhoneNumber);
 
     //確認user存在
     let employerCheck = firestore.collection(util.tables.users.tableName).doc(employerUID).get().then(doc => {
@@ -236,13 +221,12 @@ exports.punch = functions.https.onRequest((request, response) => {
     });
 
     //寫入資料庫
-    Promise.all([employeeCheck, employerCheck]).then(values => {
+    Promise.all([getEmployeeUID, employerCheck]).then(values => {
         let newRecord = {};
-        newRecord[util.tables.punchRecord.columns.issuer] = values[0].id;
+        newRecord[util.tables.punchRecord.columns.issuer] = values[0].uid;
         newRecord[util.tables.punchRecord.columns.authorizer] = values[1].id;
         newRecord[util.tables.punchRecord.columns.punchTime] = new Date();
         newRecord[util.tables.punchRecord.columns.modifyTime] = new Date();
-
         return firestore.collection(util.tables.punchRecord.tableName).add(newRecord);
     }).then((loginTime) => {
         // 回傳成功
@@ -255,13 +239,13 @@ exports.punch = functions.https.onRequest((request, response) => {
 
 });
 
+//todo 改成id
 exports.getMonthlyAttendanceRecord = functions.https.onRequest((request, response) => {
 
     let resultObj = {
         excutionResult: 'fail',
     };
     defaultValue = " ";
-
 
     let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
     let mounth = util.checkEmpty(request.body.mounth) ? request.body.mounth : defaultValue;

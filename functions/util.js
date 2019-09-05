@@ -143,7 +143,7 @@ exports.tables = {
     }
 }
 
-exports.permitions = {
+exports.permissions = {
     normal:'一般',
     HR:'人事',
     leader:'長老',

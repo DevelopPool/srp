@@ -101,7 +101,7 @@ exports.register = functions.https.onRequest((request, response) => {
                     team: _team,
                     workingType: _workingType,
                     verified: _verified,
-                    permission: util.permitions.normal,
+                    permission: util.permissions.normal,
                     image: _image,
                 });
                 return batch.commit();
@@ -121,7 +121,7 @@ exports.register = functions.https.onRequest((request, response) => {
                         team: _team,
                         workingType: _workingType,
                         verified: _verified,
-                        permission: util.permitions.normal,
+                        permission: util.permissions.normal,
                         image: _image,
                     })
                     return batch.commit();
@@ -329,9 +329,9 @@ exports.logout = functions.https.onRequest((request, response) => {
 
     let uid = util.checkEmpty(request.body.uid) ? request.body.uid : defaultValue;
     let logoutPhoneNumber = util.checkEmpty(request.body.logoutPhoneNumber) ? request.body.logoutPhoneNumber : defaultValue;
-    let permisionCheck = _permissionCheck(uid, util.permitions.super);
+    let permisionCheck = _permissionCheck(uid, util.permissions.super);
 
-    console.log(logoutPhoneNumber);
+    // console.log(logoutPhoneNumber);
     let getLogoutUser = firestore.collection(util.tables.users.tableName)
         .where(util.tables.users.columns.phoneNumber, '==', logoutPhoneNumber)
         .limit(1)
@@ -361,7 +361,7 @@ exports.logout = functions.https.onRequest((request, response) => {
     }).then((loginRecords) => {
         let batch = firestore.batch();
         loginRecords.forEach((value) => {
-            console.log(value);
+            // console.log(value);
             let logoutInfo = {};
             logoutInfo[util.tables.loginRecord.columns.logoutTime] = new Date();
             logoutInfo[util.tables.loginRecord.columns.logoutIssuer] = uid;
@@ -399,7 +399,7 @@ exports.updateUser = functions.https.onRequest((request, response) => {
         let _team = util.checkEmpty(request.body.team) ? request.body.team : defaultValue;
         let _workingType = util.checkEmpty(request.body.workingType) ? request.body.workingType : defaultValue;
         let _permission = util.checkEmpty(request.body.permission) ? request.body.permission : defaultValue;
-        console.log(_permission);
+        // console.log(_permission);
         let _verified = true;
 
         let loginCheck = _loginCheck(uid);
@@ -435,23 +435,23 @@ exports.updateUser = functions.https.onRequest((request, response) => {
         });
 
         let permisionExistCheck = firestore.collection(util.tables.permission.tableName).doc(_permission).get().then(data => {
-            console.log(data.exists);
+            // console.log(data.exists);
             return data.exists;
         })
 
         // // 確認permision 可以update
-        let permisionCheck = _permissionCheck(_uid, util.permitions.super);
+        let permisionCheck = _permissionCheck(_uid, util.permissions.super);
 
         //取得欲修改帳號uid
         let _modifiedAccount = _getUserByPhoneNumber(_modifiedAccountPhoneNumber);
 
         _modifiedAccount.then(account => {
-            console.log(account.uid);
-            console.log(_uid);
+            // console.log(account.uid);
+            // console.log(_uid);
             //改自己
             if (account.uid == _uid) {
                 console.log('改自己');
-                Promise.all([genderCheck, teamCheck, workingTypeCheck,loginCheck]).then(value => {
+                Promise.all([genderCheck, teamCheck, workingTypeCheck, loginCheck]).then(value => {
                     return firestore.collection(util.tables.users.tableName).doc(_uid).update({
                         name: _name,
                         gender: _gender,
@@ -472,7 +472,7 @@ exports.updateUser = functions.https.onRequest((request, response) => {
             else {
                 console.log('改別人');
                 let userCheck = _uidCheck(_uid);
-                Promise.all([genderCheck, teamCheck, workingTypeCheck, userCheck, permisionCheck, permisionExistCheck,loginCheck]).then(value => {
+                Promise.all([genderCheck, teamCheck, workingTypeCheck, userCheck, permisionCheck, permisionExistCheck, loginCheck]).then(value => {
                     if (!value[5]) {
                         return Promise.reject(_permission + ' does not exist');
                     }
@@ -558,31 +558,13 @@ exports.getUserList = functions.https.onRequest((request, response) => {
                 })
                 return Promise.resolve(returnData);
             });
-        // Promise.all([loginCheck ])
-        //     .then(() => {
-        //         return firestore.collection(util.tables.users.tableName).get()
-        //     })
-        //     .then(snapshot => {
-        //         users = [];
-        //         snapshot.forEach(result => {
-        //             users.push(result.data());
-        //         })
-        //         return users;
-        //     }).then((users) => {
-        //         resultObj.excutionResult = 'success';
-        //         resultObj.userList = users;
-        //         response.json(resultObj);
-        //     }).catch(reason => {
-        //         console.log(reason)
-        //         response.json(resultObj);
-        //     });
 
         Promise.all([loginCheck, permisionCheck, getUsers, getLeaveNotesOfToday, workAssignments])
             .then((values) => {
                 //console.log(values[2]);
                 //console.log(util.getMidNightUTCSeconds());
                 //console.log(values[3]);
-                console.log(values[4]);
+                // console.log(values[4]);
                 let userData = {};
                 for (userid in values[2][0]) {
                     userData[userid] = {};
@@ -624,10 +606,10 @@ function _loginCheck(userID) {
         .get()
         .then(snapshot => {
             let count = 0;
-            snapshot.forEach(records=>{
+            snapshot.forEach(records => {
                 records = records.data();
-                if(records[util.tables.loginRecord.columns.logoutTime] === null){
-                    count = count +1 ;
+                if (records[util.tables.loginRecord.columns.logoutTime] === null) {
+                    count = count + 1;
                 }
             })
             if (count === 0) {
@@ -657,12 +639,33 @@ exports.permissionCheck = _permissionCheck;
 function _permissionCheck(uid, expected) {
     return firestore.collection(util.tables.users.tableName).doc(uid).get().then(doc => {
         var user = doc.data();
-        if (user.permission !== expected) {
-            return Promise.reject(`${uid} does not have ${expected} permission`)
+        var result = Promise.reject('unknow')
+        // expected.forEach(value=>{
+        //     if(ser.permission == value){
+
+        //     }
+        // })
+        console.log('permission check')
+        console.log(typeof (expected));
+        if (typeof (expected) === 'string') {
+            if (user.permission !== expected) {
+                result = Promise.reject(`${uid} does not have ${expected} permission`)
+            }
+            else {
+                result = Promise.resolve(doc);
+            }
         }
-        else {
-            return Promise.resolve(doc);
+        else if (Array.isArray(expected)) {
+            console.log('array');
+            result = Promise.reject(`${uid} does not have ${expected} permission`)
+            expected.forEach(value=>{
+                if(value === user.permission){
+                    result = result = Promise.resolve(doc);
+                }
+            })
         }
+
+        return result;
     })
 }
 exports.getUserByPhoneNumber = _getUserByPhoneNumber;
