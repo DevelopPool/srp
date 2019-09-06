@@ -67,7 +67,7 @@ exports.addWork  = functions.https.onRequest((request, response) => {
     });
     let workerExistCheck = Promise.all(workerCheckArray);
     
-    let permissionCheck = user.permissionCheck(_uid,[util.permissions.leader,util.permissions.normal ]);
+    let permissionCheck = user.permissionCheck(_uid,[util.permissions.leader,,util.permissions.super ]);
     
     Promise.all([uidCheck, loginCheck, paracheck, teamCheck, workerExistCheck, workTimeCheck,permissionCheck]).then(valuse => {
         let WAColumn = util.tables.workAssignment.columns;

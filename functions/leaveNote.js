@@ -127,50 +127,11 @@ exports.getLeaveNoteList = functions.https.onRequest((request, response) => {
         return resolve('parameter check pass');
     })
 
-    // let today = Date.now();
-    // let date = new Date()
-    // today -= date.getUTCMilliseconds();
-    // today -= date.getUTCSeconds() * 1000;
-    // today -= date.getUTCMinutes() * 60 * 1000;
-    // let hour = date .getUTCHours() + 8;
-    // if(hour >= 24){
-    //     hour-=24;
-    // }
-    // today -= hour * 60 * 60 * 1000;
-
-    // let loginCheck = firestore.collection(util.tables.loginRecord.tableName)
-    //     .where(util.tables.loginRecord.columns.uid, '==', uid)
-    //     .where(util.tables.loginRecord.columns.loginTime, '>', new Date(today))
-    //     .orderBy(util.tables.loginRecord.columns.loginTime, 'desc')
-    //     .get().then(snapshot => {
-    //         snapshot.forEach(s=>{
-    //             console.log(new Date(s.data().loginTime._seconds*1000));
-    //         })
-
-
-    //         if (snapshot.empty) {
-    //             return Promise.reject(`${uid} login check fail`);
-    //         }
-    //         else {
-    //             return Promise.resolve(`${uid} login check pass`);
-    //         }
-    //     });
     let loginCheck = user.loginCheck(uid);
-
-    // let uidCheck = firestore.collection(util.tables.users.tableName).doc(uid).get().then(doc => {
-    //     //issuer是否存在
-    //     if (!doc.exists) {
-    //         return Promise.reject(`${uid} does not exists`)
-    //     }
-    //     else {
-    //         return Promise.resolve(doc);
-    //     }
-    // });
     let uidCheck = user.uidCheck(uid);
 
-
     //todo
-    let permisionCheck = true;
+    let permisionCheck = user.permissionCheck(_uid,[util.permissions.leader,util.permissions.HR , util.permissions.super ]);;
 
     Promise.all([uidCheck, loginCheck, permisionCheck, paraCheck]).then(values => {
         let getLeaveNote = "";
@@ -259,40 +220,14 @@ exports.authorizeAbsentNote = functions.https.onRequest((request, response) => {
     //確認leaveNote存在
 
     //登入確認
-    // let today = Date.now();
-    // let date = new Date();
-    // today -= date.getMilliseconds();
-    // today -= date.getSeconds() * 1000;
-    // today -= date.getMinutes() * 60 * 1000;
-    // today -= date.getHours() * 60 * 60 * 1000;
-    // let loginCheck = firestore.collection(util.tables.loginRecord.tableName)
-    //     .where(util.tables.loginRecord.columns.uid, '==', authorizerUID)
-    //     .where(util.tables.loginRecord.columns.loginTime, '>', new Date(today))
-    //     .orderBy(util.tables.loginRecord.columns.loginTime, 'desc')
-    //     .get().then(snapshot => {
 
-    //         if (snapshot.empty) {
-    //             return Promise.reject(`${authorizerUID} login check fail`);
-    //         }
-    //         else {
-    //             return Promise.resolve(`${authorizerUID} login check pass`);
-    //         }
-    //     });
     let loginCheck = user.loginCheck(authorizerUID);
 
     //確認UID 存在
-    // let uidCheck = firestore.collection(util.tables.users.tableName).doc(authorizerUID).get().then(doc => {
-    //     if (!doc.exists) {
-    //         return Promise.reject(`${authorizerUID} does not exists`)
-    //     }
-    //     else {
-    //         return Promise.resolve(doc);
-    //     }
-    // })
     let uidCheck = user.uidCheck(authorizerUID);
 
     //權限確認 todo
-    let permisionCheck = true;
+    let permisionCheck = user.permissionCheck(_uid,[util.permissions.leader,util.permissions.HR,util.permissions.super ]);
 
     //確認prove型別
     let paraCheck = new Promise((resolve, reject) => {

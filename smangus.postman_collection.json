@@ -1,0 +1,679 @@
+{
+	"info": {
+		"_postman_id": "7bcdb574-ac02-4894-ae2b-537ac65bafd0",
+		"name": "smangus",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "key1",
+								"value": "value1",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"gender\":\"female\",\n\t\"team\":\"工程組\",\n\t\"workingType\":\"fullTime\",\n\t\"name\":\"superwoman\",\n\t\"jobTitle\":\"super\",\n\t\"phoneNumber\":\"+886966002462\"\n\t\n}"
+						},
+						"url": {
+							"raw": "{{host}}/register",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "checkLogin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"JESI7tMcpHcIXamJUtJEwpD8mRx2\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/checkLogin",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"checkLogin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"JESI7tMcpHcIXamJUtJEwpD8mRx2\",\n\t\"logoutPhoneNumber\":\"+886912345678\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/logout",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateUser",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"JESI7tMcpHcIXamJUtJEwpD8mRx2\",\n\t\"modifiedAccountPhoneNumber\":\"+886966002462\",\n\t\"gender\":\"female\",\n\t\"team\":\"工程組\",\n\t\"workingType\":\"partTime\",\n\t\"name\":\"hahaha\",\n\t\"jobTitle\":\"superman\",\n\t\"permission\":\"長老\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/updateUser",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"updateUser"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getUserDetail",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"JESI7tMcpHcIXamJUtJEwpD8mRx2\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/getUserDetail",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"getUserDetail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getUserList",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\t\"uid\":\"JESI7tMcpHcIXamJUtJEwpD8mRx2\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/getUserList",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"getUserList"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "team",
+			"item": [
+				{
+					"name": "addTeam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"teamName\":\"team101\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/addTeam",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"addTeam"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteTeam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "teamName",
+									"value": "team1",
+									"type": "text"
+								},
+								{
+									"key": "gender",
+									"value": "M",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "jobTitle",
+									"value": "title1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "team",
+									"value": "team1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "phoneNumber",
+									"value": "0912345678",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/deleteTeam",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"deleteTeam"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getTeamList",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "teamName",
+									"value": "team1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "gender",
+									"value": "M",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "jobTitle",
+									"value": "title1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "team",
+									"value": "team1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "phoneNumber",
+									"value": "0912345678",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/getTeamList",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"getTeamList"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "announcement",
+			"item": [
+				{
+					"name": "addAnnouncement",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\",\n\t\"title\":\"測試公告\",\n\t\"detail\":\"系統快完成拉123\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/addAnnouncement",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"addAnnouncement"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAnnouncement",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\"\n\n}"
+						},
+						"url": {
+							"raw": "{{host}}/getAnnouncement",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"getAnnouncement"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "leave",
+			"item": [
+				{
+					"name": "{{host}}/askLeave",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\n\t\"issuer\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\",\n\t\"type\":\"其他\",\n\t\"startLeaveTime\":1559923200000,\n\t\"endLeaveTime\":1560009600000,\n\t\"desc\":\"等等就要刪掉啦\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/askLeave",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"askLeave"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{host}}/getLeaveNoteList",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\n\t\"uid\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\",\n\t\"unAuthNotes\":false,\n\t\"authedNotes\":true,\n\t\"offset\":0,\n\t\"limit\":0\n\t\n\t\n}"
+						},
+						"url": {
+							"raw": "{{host}}/getLeaveNoteList",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"getLeaveNoteList"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{host}}/authorizeAbsentNote",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"leaveNoteUID\":\"A0veHYa2s2DxjBQkPO2y\",\n\t\"authorizerUID\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\",\n\t\"approve_desc\":\"通過\",\n\t\"is_proved\":false\n\n}"
+						},
+						"url": {
+							"raw": "{{host}}/authorizeAbsentNote",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"authorizeAbsentNote"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{host}}/getMyLeaveNoteList",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/getMyLeaveNoteList",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"getMyLeaveNoteList"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{host}}/deleteMyLeaveNote",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\",\n\t\"LeaveNoteID\":\"AM3wetiHk2gcr7gkjGwJ\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/deleteMyLeaveNote",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"deleteMyLeaveNote"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "work",
+			"item": [
+				{
+					"name": "\b{{host}}/addWork",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n    \"team\":\"生態組\",\n    \"workType\":\"234\",\n    \"workTime\":\"晚上\",\n    \"desc\":\"砍大樹\",\n    \"worker\":[\"+886912345679\",\"+886912345670\"],\n    \"uid\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/addWork",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"addWork"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{host}}/getWork",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"uid\":\"9UDpS6D8TkNkTJ2S2c33MrlYbAY2\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/getWork",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"getWork"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "{{host}}/punch",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"employer\":\"JESI7tMcpHcIXamJUtJEwpD8mRx2\",\n\t\"employeePhoneNumber\":\"+886966002462\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/punch",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"punch"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}\\getMonthlyAttendanceRecord",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\n\t\"uid\":\"778TIlaNHBcW1lwvk3dZ1HuTuPv1\",\n\t\"mounth\":3,\n\t\"year\":2019,\n\t\"gender\":\"female\"\n\n}"
+				},
+				"url": {
+					"raw": "{{host}}/getMonthlyAttendanceRecord",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"getMonthlyAttendanceRecord"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/init",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/init",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"init"
+					]
+				},
+				"description": "do not use this"
+			},
+			"response": []
+		}
+	]
+}
